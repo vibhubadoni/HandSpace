@@ -2,7 +2,7 @@
 
 **HandSpace** is an interactive web-based prototype that allows users to manipulate 3D models using real-time hand gestures. Built with **Three.js** and **MediaPipe Hands**, it demonstrates a lightweight, browser-native approach to spatial interaction without requiring specialized hardware like VR/AR headsets.
 
-![HandSpace Demo](snapshots/Screenshot 2025-12-30 142950.png)
+![img ALT](https://github.com/vibhubadoni/HandSpace/blob/bc9e5c81fea375d5e98d3ce9638a53147ca98924/Screenshot%202025-12-30%20142950.png)
 
 ## ✨ Features
 
