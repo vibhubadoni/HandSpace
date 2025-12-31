@@ -2,15 +2,14 @@
 
 **HandSpace** is an interactive web-based prototype that allows users to manipulate 3D models using real-time hand gestures. Built with **Three.js** and **MediaPipe Hands**, it demonstrates a lightweight, browser-native approach to spatial interaction without requiring specialized hardware like VR/AR headsets.
 **💡 Why HandSpace?**
-Many classroom concepts are easier to understand when they are shown in 3D rather than explained using flat images.yet they are often taught using flat images and static diagrams. As a student, I often wondered how much easier learning would be if teachers could simply show concepts in 3D instead of describing them from a single viewpoint.
+Many classroom concepts are easier to understand when they are shown in 3D rather than explained using flat images, yet they are often taught using static diagrams. During our time as students, we observed how difficult it was for many learners to fully grasp spatial concepts when they were presented from only a single viewpoint.
 
-Whether it was understanding the angles of a cube, visualizing the human brain, or seeing the Earth from different perspectives, 2D images often limited spatial understanding.
+Whether it was understanding the angles of a cube, visualizing the human brain, or seeing the Earth from different perspectives, 2D images frequently limited spatial understanding.
 
-HandSpace was built to make interactive 3D learning accessible.
-Using only a webcam and a web browser, it allows students and educators to explore and manipulate 3D models through natural hand gestures—without expensive VR/AR hardware.
+HandSpace was built to make interactive 3D learning more accessible.
+Using only a webcam and a web browser, it allows students and educators to explore and manipulate 3D models through natural hand gestures—without the need for expensive VR/AR hardware.
 
-By focusing on education, HandSpace aims to improve spatial understanding, support better classroom demonstrations, and make interactive 3D tools available in everyday learning environments. 
-
+By focusing on education, HandSpace aims to improve spatial understanding, support clearer classroom demonstrations, and make interactive 3D tools available in everyday learning environments
 
 
 ## ✨ Features
@@ -113,6 +112,41 @@ This document includes:
 - Gesture detection algorithm flowchart
 - Module-by-module breakdown
 - Performance considerations
+
+
+**🚀 Future Enhancements**
+
+🤖 AI-Powered Tutor (Primary Focus)
+
+In a future version, HandSpace will integrate the Gemini API to introduce an AI-powered tutor that can explain and guide users through the 3D models displayed on screen.
+
+The AI tutor will be able to:
+
+Explain what the object is and its real-world significance
+
+Describe different parts and internal structures of the model
+
+Answer student questions in natural language
+
+Adapt explanations based on education level (school, high school, beginner)
+
+Support interactive learning, allowing students to rotate, zoom, and explore models while asking questions
+
+This enhancement transforms HandSpace from a simple visualization tool into an interactive educational assistant, combining spatial interaction with conversational AI to improve understanding and engagement.
+
+**🔧 Other Planned Improvements**
+
+Alongside the AI tutor, future versions of HandSpace may include:
+
+Gesture smoothing and stabilization for more precise control
+
+Built-in educational 3D model library (anatomy, geometry, Earth, molecules)
+
+Annotation and labeling tools for live explanations
+
+Voice-based interaction combined with hand gestures
+
+Accessibility enhancements for diverse learners
 
 ## �🛠️ Built With
 
