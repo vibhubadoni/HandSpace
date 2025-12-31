@@ -12,74 +12,60 @@ import { applyInteraction } from './interaction/mapper.js';
 import { updateStatus } from './ui/overlay.js';
 import { initControls } from './ui/controls.js';
 
-// --- CONFIGURATION ---
-const videoElement = document.getElementsByClassName('input_video')[0];
-const canvasElement = document.getElementsByClassName('output_canvas')[0];
+const videoElem = document.getElementsByClassName('input_video')[0];
+const canvasElem = document.getElementsByClassName('output_canvas')[0];
 
-// --- APP STATE ---
-let scene, renderer, camera, controls;
-let modelManager, handVisualizer, interactionState;
+let sceneObj, rendererObj, cameraObj, orbitControls;
+let modelMgr, handViz, stateTracker;
 
 function init() {
-    // 1. Scene Setup
-    ({ scene, renderer } = initScene(canvasElement));
-    ({ camera, controls } = initCamera(renderer));
+    ({ scene: sceneObj, renderer: rendererObj } = initScene(canvasElem));
+    ({ camera: cameraObj, controls: orbitControls } = initCamera(rendererObj));
 
-    // Add camera to scene for hand viz attachment
-    scene.add(camera);
+    sceneObj.add(cameraObj);
 
-    initLights(scene);
-    initPlane(scene);
+    initLights(sceneObj);
+    initPlane(sceneObj);
 
-    // 2. Managers
-    modelManager = new ModelManager(scene);
-    handVisualizer = new HandVisualizer(camera);
-    interactionState = new InteractionState();
+    modelMgr = new ModelManager(sceneObj);
+    handViz = new HandVisualizer(cameraObj);
+    stateTracker = new InteractionState();
 
-    // 3. UI
-    initControls(modelManager, controls);
+    initControls(modelMgr, orbitControls);
 
-    // 4. Load Default
-    modelManager.load(MODELS[0].file);
+    modelMgr.load(MODELS[0].file);
 
-    // 5. Hand Tracking
-    initHandTracker(videoElement, onHandResults);
+    initHandTracker(videoElem, processHandData);
 
-    // 6. Start Loop
-    animate();
+    renderLoop();
 }
 
-function onHandResults(results) {
-    handVisualizer.hide();
+function processHandData(detectionResults) {
+    handViz.hide();
 
-    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        const landmarks = results.multiHandLandmarks[0];
+    if (detectionResults.multiHandLandmarks && detectionResults.multiHandLandmarks.length > 0) {
+        const primaryHand = detectionResults.multiHandLandmarks[0];
 
-        // 1. Detect Gesture
-        const gestureMode = detectGesture(landmarks);
+        const recognizedGesture = detectGesture(primaryHand);
 
-        // 2. Update State & UI
-        const wrist = landmarks[0];
-        const currentHandPos = new THREE.Vector3(wrist.x, wrist.y, 0);
+        const wristMarker = primaryHand[0];
+        const handPos = new THREE.Vector3(wristMarker.x, wristMarker.y, 0);
 
-        const { changed, mode } = interactionState.update(gestureMode, currentHandPos);
+        const { changed, mode } = stateTracker.update(detectionResults.multiHandLandmarks, recognizedGesture, handPos, modelMgr);
         if (changed) {
             updateStatus(`State: ${mode}`);
         }
 
-        // 3. Apply Interaction
-        applyInteraction(interactionState, currentHandPos, modelManager, controls);
+        applyInteraction(stateTracker, handPos, modelMgr, orbitControls, detectionResults.multiHandLandmarks);
 
-        // 4. Update Visuals
-        handVisualizer.update(landmarks, mode);
+        handViz.update(detectionResults.multiHandLandmarks, mode);
     }
 }
 
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
+function renderLoop() {
+    requestAnimationFrame(renderLoop);
+    orbitControls.update();
+    rendererObj.render(sceneObj, cameraObj);
 }
 
-// Start
 window.onload = init;

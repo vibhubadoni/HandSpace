@@ -1,19 +1,22 @@
-export function initHandTracker(videoElement, onResultsCallback) {
-    const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+export function initHandTracker(videoElem, resultHandler) {
+    const handDetector = new Hands({
+        locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+    });
 
-    hands.setOptions({
-        maxNumHands: 1,
+    handDetector.setOptions({
+        maxNumHands: 2,
         modelComplexity: 1,
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5
     });
 
-    hands.onResults(onResultsCallback);
+    handDetector.onResults(resultHandler);
 
-    const cameraUtils = new Camera(videoElement, {
-        onFrame: async () => await hands.send({ image: videoElement }),
-        width: 640, height: 480
+    const cam = new Camera(videoElem, {
+        onFrame: async () => await handDetector.send({ image: videoElem }),
+        width: 640,
+        height: 480
     });
 
-    cameraUtils.start();
+    cam.start();
 }

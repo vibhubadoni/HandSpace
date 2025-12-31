@@ -1,100 +1,114 @@
 import * as THREE from 'three';
 
-const HAND_CONNECTIONS = [
-    [0, 1], [1, 2], [2, 3], [3, 4], // Thumb
-    [0, 5], [5, 6], [6, 7], [7, 8], // Index
-    [0, 9], [9, 10], [10, 11], [11, 12], // Middle
-    [0, 13], [13, 14], [14, 15], [15, 16], // Ring
-    [0, 17], [17, 18], [18, 19], [19, 20], // Pinky
-    [5, 9], [9, 13], [13, 17] // Palm
+const FINGER_BONES = [
+    [0, 1], [1, 2], [2, 3], [3, 4],
+    [0, 5], [5, 6], [6, 7], [7, 8],
+    [0, 9], [9, 10], [10, 11], [11, 12],
+    [0, 13], [13, 14], [14, 15], [15, 16],
+    [0, 17], [17, 18], [18, 19], [19, 20],
+    [5, 9], [9, 13], [13, 17]
 ];
 
 export class HandVisualizer {
-    constructor(camera) {
-        this.camera = camera;
-        this.handGroup = new THREE.Group();
-        this.handPoints = [];
-        this.handLines = [];
+    constructor(cameraRef) {
+        this.cameraRef = cameraRef;
+        this.visualGroup = new THREE.Group();
+        this.markerPool = [];
+        this.connectionPool = [];
 
-        // Attach to camera so it stays fixed in view
-        this.camera.add(this.handGroup);
+        this.cameraRef.add(this.visualGroup);
 
-        this._initMesh();
+        this._createVisualElements();
     }
 
-    _initMesh() {
-        // Pool points
-        const sphereGeo = new THREE.SphereGeometry(0.015, 8, 8);
+    _createVisualElements() {
+        const maxHandCount = 2;
+        const markersPerHand = 21;
+        const totalMarkers = markersPerHand * maxHandCount;
+
+        const sphereGeom = new THREE.SphereGeometry(0.015, 8, 8);
         const sphereMat = new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false, transparent: true });
 
+        for (let i = 0; i < totalMarkers; i++) {
+            const marker = new THREE.Mesh(sphereGeom, sphereMat);
+            marker.visible = false;
+            marker.renderOrder = 999;
+            this.visualGroup.add(marker);
+            this.markerPool.push(marker);
+        }
+
+        const totalConnections = FINGER_BONES.length * maxHandCount;
+        const connectionMat = new THREE.LineBasicMaterial({ color: 0x00ff00, depthTest: false, transparent: true });
+        for (let i = 0; i < totalConnections; i++) {
+            const conn = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), connectionMat);
+            conn.visible = false;
+            conn.renderOrder = 999;
+            this.visualGroup.add(conn);
+            this.connectionPool.push(conn);
+        }
+    }
+
+    update(handDataArray, activeMode) {
+        this.hide();
+        const handsToRender = Array.isArray(handDataArray[0]) ? handDataArray : [handDataArray];
+
+        const viewDepth = 2;
+        const verticalFOV = THREE.MathUtils.degToRad(this.cameraRef.fov);
+        const viewHeight = 2 * Math.tan(verticalFOV / 2) * viewDepth;
+        const viewWidth = viewHeight * this.cameraRef.aspect;
+
+        handsToRender.forEach((markers, handIdx) => {
+            if (handIdx >= 2) return;
+
+            const projectedPoints = markers.map(marker => {
+                const xPos = (0.5 - marker.x) * viewWidth;
+                const yPos = (0.5 - marker.y) * viewHeight;
+                const zPos = -viewDepth;
+                return new THREE.Vector3(xPos, yPos, zPos);
+            });
+
+            const markerBaseIdx = handIdx * 21;
+            const connectionBaseIdx = handIdx * FINGER_BONES.length;
+
+            projectedPoints.forEach((point, idx) => {
+                const markerMesh = this.markerPool[markerBaseIdx + idx];
+                markerMesh.position.copy(point);
+                markerMesh.visible = true;
+            });
+
+            FINGER_BONES.forEach((bone, idx) => {
+                const connection = this.connectionPool[connectionBaseIdx + idx];
+                connection.geometry.setFromPoints([projectedPoints[bone[0]], projectedPoints[bone[1]]]);
+                connection.visible = true;
+            });
+
+            this._applyModeColors(activeMode, markerBaseIdx);
+        });
+    }
+
+    _applyModeColors(activeMode, baseIdx) {
+        const neutralColor = 0xff0000;
         for (let i = 0; i < 21; i++) {
-            const p = new THREE.Mesh(sphereGeo, sphereMat);
-            p.visible = false;
-            p.renderOrder = 999;
-            this.handGroup.add(p);
-            this.handPoints.push(p);
+            this.markerPool[baseIdx + i].material.color.setHex(neutralColor);
         }
 
-        // Pool lines
-        const lineMat = new THREE.LineBasicMaterial({ color: 0x00ff00, depthTest: false, transparent: true });
-        for (let i = 0; i < HAND_CONNECTIONS.length; i++) {
-            const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), lineMat);
-            line.visible = false;
-            line.renderOrder = 999;
-            this.handGroup.add(line);
-            this.handLines.push(line);
-        }
-    }
-
-    update(landmarks, mode) {
-        // Project to Camera Space
-        const handDepth = 2; // Fixed depth
-        const vFOV = THREE.MathUtils.degToRad(this.camera.fov);
-        const planeHeight = 2 * Math.tan(vFOV / 2) * handDepth;
-        const planeWidth = planeHeight * this.camera.aspect;
-
-        const pointsLocal = landmarks.map(lm => {
-            const x = (0.5 - lm.x) * planeWidth;
-            const y = (0.5 - lm.y) * planeHeight;
-            const z = -handDepth;
-            return new THREE.Vector3(x, y, z);
-        });
-
-        // Update Viz Positions
-        pointsLocal.forEach((p, i) => {
-            this.handPoints[i].position.copy(p);
-            this.handPoints[i].visible = true;
-        });
-
-        // Update Lines
-        HAND_CONNECTIONS.forEach((pair, i) => {
-            this.handLines[i].geometry.setFromPoints([pointsLocal[pair[0]], pointsLocal[pair[1]]]);
-            this.handLines[i].visible = true;
-        });
-
-        // Update Colors based on Mode
-        this._updateColors(mode);
-    }
-
-    _updateColors(mode) {
-        // Reset defaults
-        const defaultColor = 0xff0000;
-        this.handPoints.forEach(p => p.material.color.setHex(defaultColor));
-
-        if (mode === 'ROTATING') {
-            this.handPoints[4].material.color.setHex(0xffff00);
-            this.handPoints[8].material.color.setHex(0xffff00);
-        } else if (mode === 'PANNING') {
-            this.handPoints[4].material.color.setHex(0x00ffff);
-            this.handPoints[12].material.color.setHex(0x00ffff);
-        } else if (mode === 'SCALING') {
-            this.handPoints[4].material.color.setHex(0xff00ff);
-            this.handPoints[20].material.color.setHex(0xff00ff);
+        if (activeMode === 'ROTATING') {
+            this.markerPool[baseIdx + 4].material.color.setHex(0xffff00);
+            this.markerPool[baseIdx + 8].material.color.setHex(0xffff00);
+        } else if (activeMode === 'PANNING') {
+            this.markerPool[baseIdx + 4].material.color.setHex(0x00ffff);
+            this.markerPool[baseIdx + 12].material.color.setHex(0x00ffff);
+        } else if (activeMode === 'SCALING') {
+            this.markerPool[baseIdx + 4].material.color.setHex(0xff00ff);
+            this.markerPool[baseIdx + 20].material.color.setHex(0xff00ff);
+        } else if (activeMode === 'TWO_HANDED') {
+            this.markerPool[baseIdx + 4].material.color.setHex(0x00ff00);
+            this.markerPool[baseIdx + 8].material.color.setHex(0x00ff00);
         }
     }
 
     hide() {
-        this.handPoints.forEach(p => p.visible = false);
-        this.handLines.forEach(l => l.visible = false);
+        this.markerPool.forEach(m => m.visible = false);
+        this.connectionPool.forEach(c => c.visible = false);
     }
 }

@@ -6,92 +6,91 @@ export const MODELS = [
     { name: 'Default Model', file: 'model.glb' },
     { name: 'Human Skeleton', file: 'free_pack_-_human_skeleton.glb' },
     { name: 'Jet Engine', file: 'jet_engine.glb' },
-    { name: 'Beating Heart', file: 'beating-heart.glb' }
+    { name: 'Rocket Ship', file: 'gorilla_tag_rocket_ship.glb' }
 ];
 
 export class ModelManager {
-    constructor(scene) {
-        this.scene = scene;
-        this.targetModel = null;
-        this.initialScale = 1;
+    constructor(sceneRef) {
+        this.sceneRef = sceneRef;
+        this.activeModel = null;
+        this.baseScale = 1;
     }
 
     reset() {
-        if (this.targetModel) {
-            this.targetModel.rotation.set(0, 0, 0);
-            this.targetModel.position.set(0, 0, 0);
-            this.targetModel.scale.setScalar(this.initialScale);
+        if (this.activeModel) {
+            this.activeModel.rotation.set(0, 0, 0);
+            this.activeModel.position.set(0, 0, 0);
+            this.activeModel.scale.setScalar(this.baseScale);
         }
     }
 
-    scale(factor) {
-        if (this.targetModel) {
-            this.targetModel.scale.multiplyScalar(factor);
+    scale(multiplier) {
+        if (this.activeModel) {
+            this.activeModel.scale.multiplyScalar(multiplier);
         }
     }
 
     getTarget() {
-        return this.targetModel;
+        return this.activeModel;
     }
 
     getAvailableModels() {
         return MODELS;
     }
 
-    load(filename) {
-        // Cleanup previous
-        if (this.targetModel) {
-            this.scene.remove(this.targetModel);
+    load(modelFile) {
+        if (this.activeModel) {
+            this.sceneRef.remove(this.activeModel);
 
-            this.targetModel.traverse((child) => {
-                if (child.isMesh) {
-                    child.geometry.dispose();
-                    if (child.material) {
-                        if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-                        else child.material.dispose();
+            this.activeModel.traverse((node) => {
+                if (node.isMesh) {
+                    node.geometry.dispose();
+                    if (node.material) {
+                        const materials = Array.isArray(node.material) ? node.material : [node.material];
+                        materials.forEach(mat => mat.dispose());
                     }
                 }
             });
-            this.targetModel = null;
+            this.activeModel = null;
         }
 
-        const loader = new GLTFLoader();
-        updateStatus(`Loading ${filename}...`);
+        const gltfLoader = new GLTFLoader();
+        updateStatus(`Loading ${modelFile}...`);
 
-        loader.load(`models/${filename}`, (gltf) => {
-            const rawModel = gltf.scene;
+        gltfLoader.load(`models/${modelFile}`, (gltfData) => {
+            const loadedScene = gltfData.scene;
 
-            // Ensure matrices
-            rawModel.updateMatrixWorld(true);
-            const box = new THREE.Box3().setFromObject(rawModel);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
+            loadedScene.updateMatrixWorld(true);
+            const boundingBox = new THREE.Box3().setFromObject(loadedScene);
+            const boxCenter = boundingBox.getCenter(new THREE.Vector3());
+            const boxDimensions = boundingBox.getSize(new THREE.Vector3());
 
-            // offset geometry
-            rawModel.position.sub(center);
+            loadedScene.position.set(
+                -boxCenter.x,
+                -boundingBox.min.y,
+                -boxCenter.z
+            );
 
-            // Wrapper Group
-            this.targetModel = new THREE.Group();
-            this.targetModel.add(rawModel);
+            this.activeModel = new THREE.Group();
+            this.activeModel.add(loadedScene);
 
-            // Fit logic
-            const maxDim = Math.max(size.x, size.y, size.z);
-            if (maxDim > 0) {
-                this.initialScale = 2 / maxDim;
-                this.targetModel.scale.setScalar(this.initialScale);
+            const largestDimension = Math.max(boxDimensions.x, boxDimensions.y, boxDimensions.z);
+            if (largestDimension > 0) {
+                this.baseScale = 2 / largestDimension;
+                this.activeModel.scale.setScalar(this.baseScale);
             }
 
-            this.scene.add(this.targetModel);
-            console.log(`Loaded ${filename}`);
+            this.sceneRef.add(this.activeModel);
+            console.log(`Loaded ${modelFile}`);
             updateStatus("Ready");
         },
-            (xhr) => {
-                const percent = Math.round((xhr.loaded / xhr.total) * 100);
-                updateStatus(`Loading: ${percent}%`);
+            (progressEvent) => {
+                const percentComplete = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+                updateStatus(`Loading: ${percentComplete}%`);
             },
-            (e) => {
-                console.error("Load error", e);
-                updateStatus(`Error: ${e.message || 'Failed'}`);
+            (errorEvent) => {
+                console.error("Load error", errorEvent);
+                updateStatus(`Error: ${errorEvent.message || 'Failed'}`);
             });
     }
 }

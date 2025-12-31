@@ -1,25 +1,51 @@
+import * as THREE from 'three';
+
 export const PINCH_THRESHOLD = 0.05;
 
-// Pure function to calculate distance
-function getDistance(p1, p2) {
-    return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+export function getDistance(pt1, pt2) {
+    const dx = pt1.x - pt2.x;
+    const dy = pt1.y - pt2.y;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
-export function detectGesture(landmarks) {
-    const thumbTip = landmarks[4];
-    const indexTip = landmarks[8];
-    const middleTip = landmarks[12];
-    const pinkyTip = landmarks[20];
+export function isPinched(handMarkers) {
+    return getDistance(handMarkers[4], handMarkers[8]) < PINCH_THRESHOLD;
+}
 
-    const distIndex = getDistance(thumbTip, indexTip);
-    const distMiddle = getDistance(thumbTip, middleTip);
-    const distPinky = getDistance(thumbTip, pinkyTip);
+export function detectGesture(handMarkers) {
+    const fingerTips = {
+        thumb: handMarkers[4],
+        index: handMarkers[8],
+        middle: handMarkers[12],
+        ring: handMarkers[16],
+        pinky: handMarkers[20]
+    };
 
-    if (distIndex < PINCH_THRESHOLD) {
+    const separationThreshold = 0.08;
+
+    const gaps = {
+        toIndex: getDistance(fingerTips.thumb, fingerTips.index),
+        toMiddle: getDistance(fingerTips.thumb, fingerTips.middle),
+        toRing: getDistance(fingerTips.thumb, fingerTips.ring),
+        toPinky: getDistance(fingerTips.thumb, fingerTips.pinky)
+    };
+
+    const isOpen = (gap) => gap > separationThreshold;
+    const isClosed = (gap) => gap < PINCH_THRESHOLD;
+
+    if (isClosed(gaps.toIndex) && isOpen(gaps.toMiddle) && isOpen(gaps.toRing) && isOpen(gaps.toPinky)) {
         return 'ROTATING';
-    } else if (distMiddle < PINCH_THRESHOLD) {
+    }
+
+    if (isClosed(gaps.toMiddle) && isOpen(gaps.toIndex) && isOpen(gaps.toRing) && isOpen(gaps.toPinky)) {
         return 'PANNING';
-    } else if (distPinky < PINCH_THRESHOLD) {
+    }
+
+    if (isClosed(gaps.toRing) && isOpen(gaps.toIndex) && isOpen(gaps.toMiddle) && isOpen(gaps.toPinky)) {
+        return 'CAMERA_VERTICAL';
+    }
+
+    if (isClosed(gaps.toPinky) && isOpen(gaps.toIndex) && isOpen(gaps.toMiddle) && isOpen(gaps.toRing)) {
         return 'SCALING';
     }
 

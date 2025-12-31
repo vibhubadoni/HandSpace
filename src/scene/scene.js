@@ -1,20 +1,17 @@
 import * as THREE from 'three';
 
-export function initScene(canvasElement) {
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x424141);
+export function initScene(canvasElem) {
+    const sceneObj = new THREE.Scene();
+    sceneObj.background = new THREE.Color(0x6b6b6b);
 
-    const renderer = new THREE.WebGLRenderer({ canvas: canvasElement, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    const webglRenderer = new THREE.WebGLRenderer({ canvas: canvasElem, antialias: true });
+    webglRenderer.setSize(window.innerWidth, window.innerHeight);
+    webglRenderer.shadowMap.enabled = true;
+    webglRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // Handle Resize
     window.addEventListener('resize', () => {
-        // Camera aspect update is handled in camera module or main loop usually, 
-        // but renderer size needs update here or exposed.
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        webglRenderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    return { scene, renderer };
+    return { scene: sceneObj, renderer: webglRenderer };
 }

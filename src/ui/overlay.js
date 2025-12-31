@@ -1,7 +1,7 @@
-export const statusText = document.getElementById('status-text');
+export const statusElem = document.getElementById('status-text');
 
-export function updateStatus(text) {
-    if (statusText) {
-        statusText.innerText = text;
+export function updateStatus(message) {
+    if (statusElem) {
+        statusElem.innerText = message;
     }
 }
