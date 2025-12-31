@@ -8,9 +8,7 @@ HandSpace makes interactive 3D learning accessible, affordable, and easy to use.
 
 **Key motivations:**
 
-- **Improve spatial understanding:** 2D images and static diagrams often limit comprehension of concepts like geometry, anatomy, and planetary perspectives.
-- **Enable multi-perspective exploration:** Interacting with models from different angles helps learners build accurate mental models.
-- **Lower barriers to entry:** Requires only a browser and webcam—no expensive VR/AR gear or complex setup.
+Many classroom concepts are easier to understand when they are shown in 3D ather than explained using flat images, yet they are often taught using static diagrams. During our time as students, we observed how difficult it was for many learners to fully grasp spatial concepts when they were presented from only a single viewpoint.
 
 **How it helps in the classroom:**
 
