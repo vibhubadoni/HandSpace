@@ -2,15 +2,13 @@
 
 **HandSpace** is an interactive web-based prototype that allows users to manipulate 3D models using real-time hand gestures. Built with **Three.js** and **MediaPipe Hands**, it demonstrates a lightweight, browser-native approach to spatial interaction without requiring specialized hardware like VR/AR headsets.
 
-**💡 Why HandSpace?**
-Many classroom concepts are easier to understand when they are shown in 3D rather than explained using flat images, yet they are often taught using static diagrams. During our time as students, we observed how difficult it was for many learners to fully grasp spatial concepts when they were presented from only a single viewpoint.
 
-Whether it was understanding the angles of a cube, visualizing the human brain, or seeing the Earth from different perspectives, 2D images frequently limited spatial understanding.
-
-HandSpace was built to make interactive 3D learning more accessible.
-Using only a webcam and a web browser, it allows students and educators to explore and manipulate 3D models through natural hand gestures—without the need for expensive VR/AR hardware.
-
-By focusing on education, HandSpace aims to improve spatial understanding, support clearer classroom demonstrations, and make interactive 3D tools available in everyday learning environments
+💡 Why HandSpace?**
+        Many classroom concepts are easier to understand when they are shown in 3D rather than explained using flat images, yet they are often taught using static diagrams.         During our time as students, we observed how difficult it was for many learners to fully grasp spatial concepts when they were presented from only a single                  viewpoint.
+        Whether it was understanding the angles of a cube, visualizing the human brain, or seeing the Earth from different perspectives, 2D images frequently limited                spatial understanding.
+        HandSpace was built to make interactive 3D learning more accessible.
+        Using only a webcam and a web browser, it allows students and educators to explore and manipulate 3D models through natural hand gestures—without the need for               expensive VR/AR hardware.
+        By focusing on education, HandSpace aims to improve spatial understanding, support clearer classroom demonstrations, and make interactive 3D tools available in              everyday learning environments
 
 
 ## ✨ Features
